@@ -1,7 +1,11 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+	"flag"
 	"log"
+	"strconv"
 	"net/http"
 	"database/sql"
 
@@ -10,13 +14,47 @@ import (
 	"chlofisher.com/rosewood/internal/scanner"
 )
 
+func init() {
+
+}
+
+func defaultDataDir() string {
+	dataDir := os.Getenv("XDG_DATA_HOME")
+	if dataDir != "" {
+		return filepath.Join(dataDir, "rosewood")
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("Could not find user home directory!")
+	}
+
+	// Default to ~/.local/share if XDG_DATA_HOME doesn't exist
+	return filepath.Join(home, ".local", "share", "rosewood")
+}
 
 func main() {
-	port := ":8080"
+	var portNum int
+
+	flag.IntVar(&portNum, "p", 8080, "The port the server will listen on")
+	flag.IntVar(&portNum, "port", 8080, "The port the server will listen on")
+
+	var dataPath string
+
+	flag.StringVar(&dataPath, "d", defaultDataDir(), "The directory where the media database will be stored")
+	flag.StringVar(&dataPath, "datadir", defaultDataDir(), "The directory where the media database will be stored")
+
+	flag.Parse()
+
+	port := ":" + strconv.Itoa(portNum)
 	log.Printf("Server started at http://localhost%v/", port)
 
 	// Open database connection
-	conn, err := db.Open("media.db")
+	err := os.MkdirAll(dataPath, 0755)
+	dbPath := filepath.Join(dataPath, "media.db")
+
+	log.Printf(dbPath)
+	conn, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
