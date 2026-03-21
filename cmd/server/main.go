@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"database/sql"
@@ -14,7 +13,7 @@ import (
 
 func main() {
 	port := ":8080"
-	fmt.Printf("Server started at http://localhost%v/\n", port)
+	log.Printf("Server started at http://localhost%v/", port)
 
 	// Open database connection
 	conn, err := db.Open("media.db")

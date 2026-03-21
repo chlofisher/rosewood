@@ -1,9 +1,10 @@
 package library
 
 type Song struct {
-	ID string
-	Path string
-	Title string
-	Album string
-	Artist string
+	Index int64 `json:"-"`
+	ID string `json:"id"`
+	Path string `json:"path"`
+	Title string `json:"title"`
+	Album string `json:"album"`
+	Artist string `json:"artist"`
 }

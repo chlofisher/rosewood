@@ -2,12 +2,10 @@ package scanner
 
 import (
 	"os"
-	"fmt"
 	"log"
 	"io/fs"
 	"strings"
 	"path/filepath"
-	"crypto/sha256"
 	"github.com/dhowden/tag"
 	"chlofisher.com/rosewood/internal/library"
 	"chlofisher.com/rosewood/internal/db"
@@ -37,7 +35,7 @@ func (s *FileScanner) Scan(root string) error {
 
 func (s *FileScanner) handleFile(path string, d fs.DirEntry, err error) error {
 	if err != nil {
-		log.Printf("Skipping %s: %v\n", path, err)
+		log.Printf("Skipping %s: %v", path, err)
 		return nil
 	}
 
@@ -48,7 +46,7 @@ func (s *FileScanner) handleFile(path string, d fs.DirEntry, err error) error {
 	if isAudioFile(path) {
 		err := s.handleAudioFile(path)	
 		if err != nil {
-			log.Printf("Error processing %s: %v\n", path, err)
+			log.Printf("Error processing %s: %v; skipping.", path, err)
 		}
 		return nil
 	}
@@ -67,9 +65,7 @@ func (s *FileScanner) handleAudioFile(path string) error {
 		return err
 	}
 
-	id := fmt.Sprintf("%x", hashPath(path))
 	song := &library.Song{
-		ID: id,
 		Path: path,
 		Title: meta.Title(),
 		Artist: meta.Artist(),
@@ -77,11 +73,5 @@ func (s *FileScanner) handleAudioFile(path string) error {
 	}
 
 	return s.Music.Insert(song)
-}
-
-func hashPath(path string) []byte {
-	h := sha256.New()
-	h.Write([]byte(path))
-	return h.Sum(nil)
 }
 
