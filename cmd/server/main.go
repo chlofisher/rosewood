@@ -4,40 +4,45 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"database/sql"
 
 	"chlofisher.com/rosewood/internal/db"
-	"chlofisher.com/rosewood/internal/streamer"
+	"chlofisher.com/rosewood/internal/api"
 	"chlofisher.com/rosewood/internal/scanner"
 )
-
-
-func init() {
-	fmt.Println("Initialising server...")
-}
 
 
 func main() {
 	port := ":8080"
 	fmt.Printf("Server started at http://localhost%v/\n", port)
 
-	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Music Server is Online!")
-	})
-
+	// Open database connection
 	conn, err := db.Open("media.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 
+	musicStore := initMusicStore(conn, "/home/chloe/Music/")
+
+	musicHandler := api.NewMusicHandler(musicStore)
+
+	mux := http.NewServeMux()
+
+	musicHandler.RegisterRoutes(mux)
+
+	log.Fatal(http.ListenAndServe(port, mux))
+}
+
+func initMusicStore(conn *sql.DB, rootDir string) *db.MusicStore {
 	musicStore := db.NewMusicStore(conn)
-	musicHandler := streamer.NewMusicHandler(musicStore)
-	scanner := scanner.FileScanner{Music: musicStore, RootDir: "/home/chloe/Music/"}
-	if err := scanner.Scan(); err != nil {
+
+	scanner := scanner.FileScanner{Music: musicStore}
+
+	err := scanner.Scan(rootDir) 
+	if err != nil {
 		log.Fatal("Error scanning music files: %v", err)
 	}
-
-	http.Handle("/play/music", musicHandler)
-
-	log.Fatal(http.ListenAndServe(port, nil))
+	
+	return musicStore
 }

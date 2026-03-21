@@ -28,11 +28,10 @@ func isAudioFile(path string) bool {
 
 type FileScanner struct {
 	Music *db.MusicStore
-	RootDir string
 }
 
-func (s *FileScanner) Scan() error {
-	err := filepath.WalkDir(s.RootDir, s.handleFile)
+func (s *FileScanner) Scan(root string) error {
+	err := filepath.WalkDir(root, s.handleFile)
 	return err
 }
 

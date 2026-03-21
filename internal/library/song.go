@@ -7,5 +7,3 @@ type Song struct {
 	Album string
 	Artist string
 }
-
-
