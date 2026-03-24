@@ -1,4 +1,4 @@
-package library
+package metadata
 
 type Song struct {
 	Index int64 `json:"-"`

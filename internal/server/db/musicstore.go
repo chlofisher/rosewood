@@ -6,7 +6,7 @@ import (
 
 	"github.com/sqids/sqids-go"
 
-	"chlofisher.com/rosewood/internal/library"
+	"chlofisher.com/rosewood/internal/metadata"
 )
 
 type MusicStore struct {
@@ -22,8 +22,8 @@ func NewMusicStore(conn *sql.DB) (*MusicStore) {
 	return &MusicStore{db: conn, sqidGen: s}
 }
 
-func (s *MusicStore) Find(id string) (*library.Song, error) {
-	var song library.Song
+func (s *MusicStore) Find(id string) (*metadata.Song, error) {
+	var song metadata.Song
 	err := s.db.QueryRow("SELECT id, path, title, artist, album FROM music WHERE id = ?", id).
 		Scan(&song.ID, &song.Path, &song.Title, &song.Artist, &song.Album)
 
@@ -34,32 +34,33 @@ func (s *MusicStore) Find(id string) (*library.Song, error) {
 	return &song, err
 }
 
-func (s *MusicStore) Search(searchTerm string) ([]*library.Song, error) {
+func (s *MusicStore) Search(searchTerm string) ([]*metadata.Song, error) {
+	var rows *sql.Rows
+	var err error
 	if searchTerm == "" {
-		return nil, nil
-	}
+		rows, err = s.db.Query("SELECT row_id, id, path, title, artist, album FROM music") 
+	} else {
+		query := `
+			SELECT m.row_id, m.id, m.path, m.title, m.artist, m.album
+			FROM music m
+			JOIN music_search f ON m.row_id = f.rowid
+			WHERE music_search MATCH ?
+			ORDER BY bm25(music_search)
+			LIMIT 50;
+		`
 
-	formattedSearch := searchTerm + "*"
-
-	query := `
-		SELECT m.row_id, m.id, m.path, m.title, m.artist, m.album
-		FROM music m
-		JOIN music_search f ON m.row_id = f.rowid
-		WHERE music_search MATCH ?
-		ORDER BY bm25(music_search)
-		LIMIT 50;
-	`
-
-	rows, err := s.db.Query(query, formattedSearch)
-	if err != nil {
-		return nil, fmt.Errorf("Search failed: %w", err)
+		formattedSearch := searchTerm + "*"
+		rows, err = s.db.Query(query, formattedSearch)
+		if err != nil {
+			return nil, fmt.Errorf("Search failed: %w", err)
+		}
 	}
 	defer rows.Close()
 
-	var results []*library.Song
+	var results []*metadata.Song
 
 	for rows.Next() {
-		song := &library.Song{}
+		song := &metadata.Song{}
 		err := rows.Scan(
 			&song.Index,
 			&song.ID,
@@ -77,7 +78,7 @@ func (s *MusicStore) Search(searchTerm string) ([]*library.Song, error) {
 	return results, nil
 }
 
-func (s *MusicStore) Insert(song *library.Song) error {
+func (s *MusicStore) Insert(song *metadata.Song) error {
 	query := `
 		INSERT INTO music (path, title, artist, album)
 		VALUES (?, ?, ?, ?)

@@ -4,8 +4,8 @@ import (
 	"log"
 	"encoding/json"
 	"net/http"
-	"chlofisher.com/rosewood/internal/db"
-	"chlofisher.com/rosewood/internal/library"
+	"chlofisher.com/rosewood/internal/server/db"
+	"chlofisher.com/rosewood/internal/metadata"
 )
 
 type MusicHandler struct {
@@ -24,7 +24,6 @@ func (h *MusicHandler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *MusicHandler) Stream(w http.ResponseWriter, r *http.Request) {
-	// id := r.URL.Query().Get("id")
 	id := r.PathValue("id")
 	
 	log.Printf("Requested song ID %v", id)
@@ -43,7 +42,7 @@ func (h *MusicHandler) Stream(w http.ResponseWriter, r *http.Request) {
 func (h *MusicHandler) Search(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
 
-	songs := []*library.Song{}
+	songs := []*metadata.Song{}
 	songs, err := h.Store.Search(q)
 	if err != nil {
 		log.Printf("%v", err)

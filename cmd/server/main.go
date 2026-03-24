@@ -9,14 +9,10 @@ import (
 	"net/http"
 	"database/sql"
 
-	"chlofisher.com/rosewood/internal/db"
-	"chlofisher.com/rosewood/internal/api"
-	"chlofisher.com/rosewood/internal/scanner"
+	"chlofisher.com/rosewood/internal/server/db"
+	"chlofisher.com/rosewood/internal/server/api"
+	"chlofisher.com/rosewood/internal/server/scanner"
 )
-
-func init() {
-
-}
 
 func defaultDataDir() string {
 	dataDir := os.Getenv("XDG_DATA_HOME")
@@ -33,34 +29,46 @@ func defaultDataDir() string {
 	return filepath.Join(home, ".local", "share", "rosewood")
 }
 
-func main() {
+func parseFlags() (string, string, string) {
 	var portNum int
-
 	flag.IntVar(&portNum, "p", 8080, "The port the server will listen on")
 	flag.IntVar(&portNum, "port", 8080, "The port the server will listen on")
 
 	var dataPath string
+	flag.StringVar(&dataPath, "data", defaultDataDir(), "The directory where the media database will be stored")
 
-	flag.StringVar(&dataPath, "d", defaultDataDir(), "The directory where the media database will be stored")
-	flag.StringVar(&dataPath, "datadir", defaultDataDir(), "The directory where the media database will be stored")
+	var musicDir string
+	flag.StringVar(&musicDir, "music", ".", "The directory where the media database will be stored")
 
 	flag.Parse()
 
+	if portNum < 1 || portNum > 65535 {
+		log.Fatalf("Invalid port: %d. Must be between 1 and 65536", portNum)
+	}
 	port := ":" + strconv.Itoa(portNum)
+
+	musicDir, _ = filepath.Abs(musicDir)
+
+	return port, dataPath, musicDir
+}
+
+func main() {
+	port, dataPath, musicDir := parseFlags()
+
 	log.Printf("Server started at http://localhost%v/", port)
 
 	// Open database connection
 	err := os.MkdirAll(dataPath, 0755)
 	dbPath := filepath.Join(dataPath, "media.db")
 
-	log.Printf(dbPath)
+	log.Printf("Opening DB at %s", dbPath)
 	conn, err := db.Open(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
 
-	musicStore := initMusicStore(conn, "/home/chloe/Music/")
+	musicStore := initMusicStore(conn, musicDir)
 
 	musicHandler := api.NewMusicHandler(musicStore)
 

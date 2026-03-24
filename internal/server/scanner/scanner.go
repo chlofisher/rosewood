@@ -7,21 +7,26 @@ import (
 	"strings"
 	"path/filepath"
 	"github.com/dhowden/tag"
-	"chlofisher.com/rosewood/internal/library"
-	"chlofisher.com/rosewood/internal/db"
+	"chlofisher.com/rosewood/internal/metadata"
+	"chlofisher.com/rosewood/internal/server/db"
 )
 
-var audioExtensions = map[string]bool{
-    ".mp3":  true,
-    ".flac": true,
-    ".ogg":  true,
-    ".wav":  true,
-    ".m4a":  true,
+var audioExtensions = map[string]struct{}{
+    ".mp3":  {},
+    ".flac": {},
+    ".ogg":  {},
+    ".wav":  {},
+    ".m4a":  {},
 }
 
 func isAudioFile(path string) bool {
 	ext := strings.ToLower(filepath.Ext(path))
-	return audioExtensions[ext] // True if ext is a recognised audio extension
+
+	// Return true if ext is in the set of audioextensions
+	if _, ok := audioExtensions[ext]; ok {
+		return true
+	}
+	return false
 }
 
 type FileScanner struct {
@@ -65,7 +70,7 @@ func (s *FileScanner) handleAudioFile(path string) error {
 		return err
 	}
 
-	song := &library.Song{
+	song := &metadata.Song{
 		Path: path,
 		Title: meta.Title(),
 		Artist: meta.Artist(),
