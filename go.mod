@@ -3,16 +3,17 @@ module chlofisher.com/rosewood
 go 1.25.0
 
 require (
+	charm.land/bubbles/v2 v2.0.0
 	charm.land/bubbletea/v2 v2.0.2
+	charm.land/lipgloss/v2 v2.0.2
 	github.com/adrg/libvlc-go/v3 v3.1.6
 	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
+	github.com/gen2brain/go-mpv v0.2.3
 	github.com/sqids/sqids-go v0.4.1
 	modernc.org/sqlite v1.47.0
 )
 
 require (
-	charm.land/bubbles/v2 v2.0.0 // indirect
-	charm.land/lipgloss/v2 v2.0.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/charmbracelet/colorprofile v0.4.2 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260205113103-524a6607adb8 // indirect
@@ -21,9 +22,9 @@ require (
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
-	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/ebitengine/purego v0.7.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
