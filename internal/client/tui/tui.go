@@ -77,8 +77,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc":
 			m.searchBar.Blur()
 		case "enter":
-			idx := m.songList.Cursor()
-			m.clientInstance.PlaySongID(m.songs[idx].ID)
+			idx := m.songList.GlobalIndex()
+			if idx <= len(m.songs) - 1 {
+				song := m.songs[idx]
+				m.clientInstance.PlaySongID(song.ID)
+			}
 		case "ctrl+c":
 			return m, tea.Quit
 		}
