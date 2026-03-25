@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"strconv"
+	"net"
 	"net/http"
 	"database/sql"
 
@@ -55,8 +56,6 @@ func parseFlags() (string, string, string) {
 func main() {
 	port, dataPath, musicDir := parseFlags()
 
-	log.Printf("Server started at http://localhost%v/", port)
-
 	// Open database connection
 	err := os.MkdirAll(dataPath, 0755)
 	dbPath := filepath.Join(dataPath, "media.db")
@@ -76,7 +75,14 @@ func main() {
 
 	musicHandler.RegisterRoutes(mux)
 
-	log.Fatal(http.ListenAndServe(port, mux))
+	ln, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatal()
+	}
+
+	log.Printf("Server started at http://%s/", ln.Addr().String())
+
+	http.Serve(ln, mux)
 }
 
 func initMusicStore(conn *sql.DB, rootDir string) *db.MusicStore {
